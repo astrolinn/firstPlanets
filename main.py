@@ -67,10 +67,6 @@ if __name__ == '__main__':
     membryo_vortex = pfEm.embryoMass(pf_vortex)
     membryo_vortex_growth = pfEm.embryoMass(pf_vortex_growth)
 
-    plotting = plot.Plot(model,d2gSt)
-
-    plotting.plotDisk(membryo, membryo_vortex, membryo_vortex_growth)
-
     pebb = pebble.Pebble(model)
 
     tform = np.arange(model.t[0], 2.9e6*year, 2e5*year)
@@ -113,5 +109,9 @@ if __name__ == '__main__':
                     mp_vortex_2[it,ir] = mPlanet
                 if me_v_g > 0:
                     mp_vortex_growth_2[it,ir] = mPlanet
+
+    plotting = plot.Plot(model,d2gSt)
+
+    plotting.plotDisk(membryo, membryo_vortex, membryo_vortex_growth)
 
     plotting.plotPlanet(membryo, membryo_vortex, membryo_vortex_growth, tform_exact, rform_exact, mp, mp_vortex, mp_vortex_growth, mp_2, mp_vortex_2, mp_vortex_growth_2)
