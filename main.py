@@ -32,11 +32,8 @@ import numpy as np
 import astropy.constants as c
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-from inputFile import (
-    MS, nrOrbInVortex
-)
-year = 365.25*24*3600
-au = c.au.cgs.value
+
+import argparse
 
 import load
 import disk
@@ -44,9 +41,20 @@ import planetesimal
 import pebble
 import plot
 
+from inputFile import (
+    MS, nrOrbInVortex
+)
+
+year = 365.25*24*3600
+au = c.au.cgs.value
+
 if __name__ == '__main__':
 
-    model = load.Model(rmax = 50*au, tmin = 1e4*year)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', help='Path to dustPy data.', default='./', type=str)
+    args = parser.parse_args()
+
+    model = load.Model(path=args.path, rmax = 50*au, tmin = 1e4*year)
 
     d2gSt = disk.Disk(model)
 

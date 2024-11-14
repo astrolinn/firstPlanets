@@ -7,22 +7,23 @@ class Model:
     This class handles reading in the dustPy data
     """
 
-    def __init__(self, tmin, rmax):
+    def __init__(self, path, tmin, rmax):
+        self.path = path
         self.tmin = tmin
         self.rmax = rmax
         self.load()
         self.limit()
     
     def load(self):
-        self.r = np.load('files_dp/r.npy')
-        self.t = np.load('files_dp/tdustev.npy')
-        self.sigma_gas = np.load('files_dp/sigma_gas_2D.npy') # (t,r)
-        self.sigma_dust_poly = np.load('files_dp/sigma_dust_poly_3D.npy') # (t,r,fluid-bins)
-        self.rho_gas = np.load('files_dp/rho_gas_2D.npy') # (t,r)
-        self.rho_dust_poly = np.load('files_dp/rho_dust_3D.npy') # (t,r,fluid-bins)
-        self.St_poly = np.load('files_dp/st_poly_3D.npy') # (t,r,fluid-bins)
-        self.temp = np.load('files_dp/temp_2D.npy') # (t,r)
-        self.vrad_dust_poly = np.load('files_dp/vrad_dust_3D.npy') # (t,r,fluid-bins)
+        self.r = np.load(self.path+'/files_dp/r.npy')
+        self.t = np.load(self.path+'/files_dp/tdustev.npy')
+        self.sigma_gas = np.load(self.path+'/files_dp/sigma_gas_2D.npy') # (t,r)
+        self.sigma_dust_poly = np.load(self.path+'/files_dp/sigma_dust_poly_3D.npy') # (t,r,fluid-bins)
+        self.rho_gas = np.load(self.path+'/files_dp/rho_gas_2D.npy') # (t,r)
+        self.rho_dust_poly = np.load(self.path+'/files_dp/rho_dust_3D.npy') # (t,r,fluid-bins)
+        self.St_poly = np.load(self.path+'/files_dp/st_poly_3D.npy') # (t,r,fluid-bins)
+        self.temp = np.load(self.path+'/files_dp/temp_2D.npy') # (t,r)
+        self.vrad_dust_poly = np.load(self.path+'/files_dp/vrad_dust_3D.npy') # (t,r,fluid-bins)
 
     def limit(self):
         """
