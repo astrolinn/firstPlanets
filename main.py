@@ -64,10 +64,10 @@ if __name__ == '__main__':
     pf_vortex = pfEm.planForm(d2gSt.d2gRho_vortex, pfEm.SI_Lim2024b(d2gSt.St_mono))
     pf_vortex_growth = pfEm.planForm(d2gSt.d2gRho_vortex_growth, pfEm.SI_Lim2024b(d2gSt.St_vortex_growth))
     membryo = pfEm.embryoMass(pf)
-    membryo_vortex = pfEm.embryoMass(pf_vortex)
-    membryo_vortex_growth = pfEm.embryoMass(pf_vortex_growth)
+    membryo_vortex = pfEm.embryoMass_vortex(pf_vortex)
+    membryo_vortex_growth = pfEm.embryoMass_vortex(pf_vortex_growth)
 
-    pebb = pebble.Pebble(model)
+    pebb = pebble.Pebble(model, pfEm)
 
     tform = np.arange(model.t[0], 2.9e6*year, 2e5*year)
     rform = np.arange(model.r[0], 50*au, 5*au)
@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 # Pebble accretion initially inside the vortex 
                 orbitalPeriod = 2*np.pi * np.sqrt(rform[ir]**3/(c.G.cgs.value*MS))
                 tLeaveVortex = tform[it] + nrOrbInVortex * orbitalPeriod
-                mPlanet_afterVortex = pebb.pebbAcc_vortex(tform[it],rform[ir],mform,tLeaveVortex)
+                mPlanet_afterVortex = pebb.pebbAcc_vortex_v2(tform[it],rform[ir],mform,tLeaveVortex)
                 mPlanet = pebb.pebbAcc(tLeaveVortex,rform[ir],mPlanet_afterVortex)
                 if me > 0:
                     mp_2[it,ir] = mPlanet
@@ -110,7 +110,8 @@ if __name__ == '__main__':
                 if me_v_g > 0:
                     mp_vortex_growth_2[it,ir] = mPlanet
 
-    plotting = plot.Plot(model,d2gSt)
+
+    plotting = plot.Plot(model, d2gSt, path=args.path)
 
     plotting.plotDisk(membryo, membryo_vortex, membryo_vortex_growth)
 
