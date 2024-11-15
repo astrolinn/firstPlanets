@@ -12,8 +12,9 @@ class Pebble:
     This class handles the accretion of pebbles onto a planet
     inside and outside a vortex
     """
-    def __init__(self, model):
+    def __init__(self, model, pfEm):
         self.model = model
+        self.pfEm = pfEm
 
     def interp_form(self, tform, rform):
         """
@@ -111,29 +112,68 @@ class Pebble:
                 mnew = m
             mPlanet[it] = mnew
         return mPlanet[-1]
-    
-    def massVortex(self, tind, rind):
+
+    def pebbAccRate_vortex(self, tind, rind):
         """
-        Calculates the total dust mass trapped inside a
-        vortex using eq.65 from Lyra et al. (2013)
-        We assume a Kida vortex with chi=4
+        Calculates the pebble accretion rate inside a vortex
+        using eq.27 from Cummins et al. (2022)
         """
-        def _scaleFunction(chi):
-            omega_v = 3/2 / (chi - 1)
-            xi_plus = 1 + chi**(-2)
-            f2chi = 2 * omega_v * chi - xi_plus**(-1) * (2 * omega_v**2 + 3)
-            return np.sqrt(f2chi)
-        chi = 4
         a = self.model.r[rind]
         Omega = np.sqrt(c.G.cgs.value*MS/a**3)
         temp = self.model.temp[tind,rind]
         Cs = np.sqrt(c.k_B.cgs.value*temp/(mu*c.u.cgs.value))
         H = Cs/Omega
-        rho_dust = self.model.rho_dust_poly[tind,rind,:].sum(-1)
-        fchi = _scaleFunction(chi)
-        Hg = H / fchi
-        Mvortex = (2 * np.pi)**(3/2) * rho_dust * chi * H * Hg**2
-        return Mvortex
+        Mdot_core = 4/3 * Omega * H**2 * self.model.sigma_dust_poly[tind,rind,:].sum(-1)
+        return Mdot_core
+    
+    def pebbAcc_vortex(self, tform, rform, mform, tLeaveVortex):
+        """
+        Solves for the mass growth of a planet inside a vortex
+        via the accretion of pebbles, from time tform to time
+        tLeaveVortex
+        1) The planet accretes all dust that is trapped within
+        the vortex during the first orbital period (if the planet
+        leaves the vortex after e.g. 0.6 orbital periods it 
+        accretes 60% of the trapped dust mass)
+        2) For the remainder of the time within the vortex, the 
+        planet accretes at a rate set by eq.27 from Cummins et al. 
+        (whic is constant because the surface density of the 
+        background disk is ~constant)
+        """
+        tind, rind = self.interp_form(tform, rform)
+        orbitalPeriod = 2*np.pi * np.sqrt(rform**3/(c.G.cgs.value*MS))
+        dttot = tLeaveVortex - tform
+        dt1 = min(dttot, orbitalPeriod)
+        dt2 = dttot - dt1
+        Mvortex_dust = self.pfEm.Mvortex[tind, rind] - mform
+        mPlanet = mform + Mvortex_dust * dt1 / orbitalPeriod
+        mPlanet = mPlanet + self.pebbAccRate_vortex(tind, rind) * dt2
+        return mPlanet
+    
+    def pebbAcc_vortex_v2(self, tform, rform, mform, tLeaveVortex):
+        """
+        Solves for the mass growth of a planet inside a vortex
+        via the accretion of pebbles, from time tform to time
+        tLeaveVortex
+        1) The planet accretes all dust that is trapped within
+        the vortex during the first orbital period (if the planet
+        leaves the vortex after e.g. 0.6 orbital periods it 
+        accretes 60% of the trapped dust mass)
+        2) For the remainder of the time within the vortex, the 
+        planet accretes at the rate which dust radially drifts
+        into the vortex semimajor axis (which is ~constant)
+        """
+        tind, rind = self.interp_form(tform, rform)
+        orbitalPeriod = 2*np.pi * np.sqrt(rform**3/(c.G.cgs.value*MS))
+        dttot = tLeaveVortex - tform
+        dt1 = min(dttot, orbitalPeriod)
+        dt2 = dttot - dt1
+        Mvortex_dust = self.pfEm.Mvortex[tind, rind] - mform
+        mPlanet = mform + Mvortex_dust * dt1 / orbitalPeriod
+        MdotIntoVortex_poly = self.model.sigma_dust_poly[tind,rind,:] * 2 * np.pi * rform * self.model.vrad_dust_poly[tind,rind,:]
+        MdotIntoVortex = MdotIntoVortex_poly.sum()
+        mPlanet = mPlanet + MdotIntoVortex * dt2
+        return mPlanet
 
     def areaVortex(self, tind, rind):
         """
@@ -147,8 +187,8 @@ class Pebble:
         H = Cs/Omega
         area = 4/9 * np.pi * chi * H**2
         return area
-    
-    def pebbAccRate_vortex(self, tind, rind, sigma_dust_vortex):
+
+    def pebbAccRate_vortex_oldversion(self, tind, rind, sigma_dust_vortex):
         """
         Calculates the pebble accretion rate inside a vortex
         using eq.27 from Cummins et al. (2022)
@@ -161,7 +201,7 @@ class Pebble:
         Mdot_core = 4/3 * Omega * H**2 * sigma_dust_vortex
         return Mdot_core
 
-    def pebbAcc_vortex(self, tform, rform, mform, tLeaveVortex):
+    def pebbAcc_vortex_oldversion(self, tform, rform, mform, tLeaveVortex):
         """
         Solves for the mass growth of a planet inside a vortex
         via the accretion of pebbles, from time tform to time
@@ -183,7 +223,7 @@ class Pebble:
         MdotIntoVortex_poly = self.model.sigma_dust_poly[tind,rind,:] * 2 * np.pi * rform * self.model.vrad_dust_poly[tind,rind,:]
         MdotIntoVortex = MdotIntoVortex_poly.sum()
         AreaVortex = self.areaVortex(tind, rind)
-        Mvortex = self.massVortex(tind, rind)
+        Mvortex = self.pfEm.Mvortex[tind, rind]
         for it in range(1,len(t)):
             m = mPlanet[it-1]
             sigma_dust_vortex = Mvortex/AreaVortex
