@@ -2,6 +2,7 @@ import numpy as np
 import astropy.constants as c
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+import os
 year = 365.25*24*3600
 au = c.au.cgs.value
 ME = c.M_earth.cgs.value
@@ -10,7 +11,8 @@ class Plot:
     """
     This class contains functions for creating plots
     """
-    def __init__(self, model, d2gSt):
+    def __init__(self, model, d2gSt, path):
+        self.path = path
         self.model = model
         self.d2gSt = d2gSt
 
@@ -58,7 +60,7 @@ class Plot:
         axes[0,0].set_title('No vortex')
         axes[0,1].set_title('Vortex - conc.')
         axes[0,2].set_title('Vortex - conc. & grow')
-        plt.savefig("disk.png",bbox_inches="tight")
+        plt.savefig(os.path.join(self.path,'disk.png'),bbox_inches='tight')
         plt.show()
         plt.close()
 
@@ -97,7 +99,7 @@ class Plot:
         cbar1.set_label(r'$M_{\rm p}/\rm{M}_{\oplus}$') 
         # Planetary masses when accretion is initially inside the vortex
         pmin = 0
-        pmax = 0.25
+        pmax = 0.3
         axes[2,0].pcolormesh(rform_exact/au,tform_exact/year,np.where(mp_2 == 0, np.nan, mp_2 / ME),vmin=pmin,vmax=pmax)
         axes[2,1].pcolormesh(rform_exact/au,tform_exact/year,np.where(mp_vortex_2 == 0, np.nan, mp_vortex_2 / ME),vmin=pmin,vmax=pmax)
         im2=axes[2,2].pcolormesh(rform_exact/au,tform_exact/year,np.where(mp_vortex_growth_2 == 0, np.nan, mp_vortex_growth_2 / ME),vmin=pmin,vmax=pmax)
@@ -111,6 +113,6 @@ class Plot:
         axes[0,2].set_title('Vortex - conc. & grow')
         axes[0,0].set_xlim([1,50])
         axes[0,0].set_ylim([0,3e6])
-        plt.savefig("planet.png",bbox_inches="tight")
+        plt.savefig(os.path.join(self.path,'planet.png'),bbox_inches='tight')
         plt.show()
         plt.close()
