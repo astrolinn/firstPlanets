@@ -12,12 +12,12 @@ class Planetesimal:
     def __init__(self, model, d2gSt):
         self.model = model
         self.d2gSt = d2gSt
-        self.rho_R = self.rocheDensity()
+        self.rocheDensity()
+        self.massVortex()
     
     def rocheDensity(self):
         Omega = np.sqrt(c.G.cgs.value*MS/self.model.r**3)
-        rho_R = 9*Omega**2 / (4*np.pi*c.G.cgs.value)
-        return rho_R
+        self.rho_R = 9*Omega**2 / (4*np.pi*c.G.cgs.value)
 
     def SI_Lim2024a(self, St):
         """
@@ -51,7 +51,55 @@ class Planetesimal:
         """
         pf = np.array((eps > eps_crit) | (eps * self.model.rho_gas > self.rho_R[None,:]), dtype=int)
         return pf
+    
+    def planForm_roche(self, eps):
+        """
+        Check if the Roche density is reached
+        """
+        pf = np.array((eps * self.model.rho_gas > self.rho_R[None,:]), dtype=int)
+        return pf
+    
+    def massVortex(self):
+        """
+        Calculates the total dust mass trapped inside a
+        vortex using eq.65 from Lyra et al. (2013)
+        We assume a Kida vortex with chi=4
+        """
+        def _scaleFunction(chi):
+            omega_v = 3/2 / (chi - 1)
+            xi_plus = 1 + chi**(-2)
+            f2chi = 2 * omega_v * chi - xi_plus**(-1) * (2 * omega_v**2 + 3)
+            return np.sqrt(f2chi)
+        chi = 4
+        a = self.model.r
+        Omega = np.sqrt(c.G.cgs.value*MS/a**3)
+        temp = self.model.temp
+        Cs = np.sqrt(c.k_B.cgs.value*temp/(mu*c.u.cgs.value))
+        H = Cs/Omega[None,:]
+        rho_dust = self.model.rho_dust_poly.sum(-1)
+        fchi = _scaleFunction(chi)
+        Hg = H / fchi
+        self.Mvortex = (2 * np.pi)**(3/2) * rho_dust * chi * H * Hg**2
 
+    def embryoMass_vortex(self, pf):
+        """
+        Calculates the embryo mass using eq.X and assuming
+        that the embryo mass is 10x the standard mass of
+        a planetesimal forming via the SI
+        Checks that embryo mass is not larger than the total
+        mass of trapped dust in the vortex
+        """
+        gamma = 1
+        Zfil = 0.1
+        Omega = (c.G.cgs.value * MS / self.model.r**3)**(1/2)
+        Cs = (c.k_B.cgs.value * self.model.temp / (mu * c.u.cgs.value))**(1/2)
+        H = Cs / Omega[None,:]
+        h = H / self.model.r[None,:]
+        mp = 5e-5 * c.M_earth.cgs.value * (Zfil/ 0.02)**(1/2) * (gamma / np.pi**(-1))**(3/2) * (h / 0.05)**3 * (MS / c.M_sun.cgs.value)
+        membryo = 10 * mp * pf
+        membryo = np.minimum(self.Mvortex, membryo)
+        return membryo
+    
     def embryoMass(self, pf):
         """
         Calculates the embryo mass using eq.X and assuming
