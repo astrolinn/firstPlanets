@@ -3,10 +3,12 @@ import os
 import re
 
 import glob
+import warnings
 
 class Model:
     """
-    This class handles reading in the dustPy data
+    This class handles reading in the dustPy data and saving it
+    as numpy arrays.
     """
 
     def __init__(self, path, tmin, rmax):
@@ -31,41 +33,42 @@ class Model:
             print("Data has been loaded")
         elif os.path.exists(os.path.join(self.path, 'data')):
             print("data directory exists: reading and saving dustPy data")
-            os.mkdir(self.path+'/files_dp')
             import dustpy
             from dustpy import hdf5writer
             wrtr = hdf5writer()
-            lent = self.findnrsave()+1
-            data = wrtr.read.output(0)
+            lent = self.findnrsave() + 1
+            data = wrtr.read.output(os.path.join(self.path, 'data', 'data0000.hdf5'))
             nrfluids = len(data.dust.Sigma[0,:])
             self.r = data.grid.r
-            self.tdustev = np.zeros((lent))
-            self.sigma_gas_2D = np.zeros((lent,len(self.r)))
-            self.sigma_dust_3D = np.zeros((lent,len(self.r),nrfluids))
-            self.rho_gas_2D = np.zeros((lent,len(self.r)))
-            self.rho_dust_3D = np.zeros((lent,len(self.r),nrfluids))
-            self.vrad_dust_3D = np.zeros((lent,len(self.r),nrfluids))
-            self.temp_2D = np.zeros((lent,len(self.r)))
-            self.st_3D = np.zeros((lent,len(self.r),nrfluids))
+            self.t = np.zeros((lent))
+            self.sigma_gas = np.zeros((lent, len(self.r)))
+            self.sigma_dust_poly = np.zeros((lent, len(self.r), nrfluids))
+            self.rho_gas = np.zeros((lent,len(self.r)))
+            self.rho_dust_poly = np.zeros((lent, len(self.r), nrfluids))
+            self.vrad_dust_poly = np.zeros((lent, len(self.r), nrfluids))
+            self.temp = np.zeros((lent,len(self.r)))
+            self.St_poly = np.zeros((lent, len(self.r), nrfluids))
             for i in range(lent):
-                data = wrtr.read.output(i)
-                self.tdustev[i] = data.t
-                self.sigma_gas_2D[i,:] = data.gas.Sigma
-                self.sigma_dust_3D[i,:,:] = data.dust.Sigma
-                self.rho_gas_2D[i,:] = data.gas.rho
-                self.rho_dust_3D[i,:,:] = data.dust.rho
-                self.vrad_dust_3D[i,:,:] = data.dust.v.rad
-                self.temp_2D[i,:] = data.gas.T
-                self.st_3D[i,:,:] = data.dust.St
-            np.save(os.path.join(self.path,'files_dp/r.npy'),self.r)
-            np.save(os.path.join(self.path,'files_dp/tdustev.npy'),self.tdustev)
-            np.save(os.path.join(self.path,'files_dp/sigma_gas_2D.npy'),self.sigma_gas_2D)
-            np.save(os.path.join(self.path,'files_dp/sigma_dust_3D.npy'),self.sigma_dust_3D)
-            np.save(os.path.join(self.path,'files_dp/rho_gas_2D.npy'),self.rho_gas_2D)
-            np.save(os.path.join(self.path,'files_dp/rho_dust_3D.npy'),self.rho_dust_3D)
-            np.save(os.path.join(self.path,'files_dp/vrad_dust_3D.npy'),self.vrad_dust_3D)
-            np.save(os.path.join(self.path,'files_dp/temp_2D.npy'),self.temp_2D)
-            np.save(os.path.join(self.path,'files_dp/st_3D.npy'),self.st_3D)
+                filename = f"data{i:04d}.hdf5"
+                data = wrtr.read.output(os.path.join(self.path, 'data', filename))
+                self.t[i] = data.t
+                self.sigma_gas[i,:] = data.gas.Sigma
+                self.sigma_dust_poly[i,:,:] = data.dust.Sigma
+                self.rho_gas[i,:] = data.gas.rho
+                self.rho_dust_poly[i,:,:] = data.dust.rho
+                self.vrad_dust_poly[i,:,:] = data.dust.v.rad
+                self.temp[i,:] = data.gas.T
+                self.St_poly[i,:,:] = data.dust.St
+            os.mkdir(self.path+'/files_dp')
+            np.save(os.path.join(self.path, 'files_dp/r.npy'), self.r)
+            np.save(os.path.join(self.path, 'files_dp/tdustev.npy'), self.t)
+            np.save(os.path.join(self.path, 'files_dp/sigma_gas_2D.npy'), self.sigma_gas)
+            np.save(os.path.join(self.path, 'files_dp/sigma_dust_3D.npy'), self.sigma_dust_poly)
+            np.save(os.path.join(self.path, 'files_dp/rho_gas_2D.npy'), self.rho_gas)
+            np.save(os.path.join(self.path, 'files_dp/rho_dust_3D.npy'), self.rho_dust_poly)
+            np.save(os.path.join(self.path, 'files_dp/vrad_dust_3D.npy'), self.vrad_dust_poly)
+            np.save(os.path.join(self.path, 'files_dp/temp_2D.npy'), self.temp)
+            np.save(os.path.join(self.path, 'files_dp/st_3D.npy'), self.St_poly)
             print("Data has been loaded")
         else:
             raise FileNotFoundError("Error: no data exists in the specified path.")
