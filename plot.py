@@ -94,6 +94,7 @@ class Plot:
         vortex (where planetesimals form) as a function
         of time and semimajor axis, for case VC and VCG.
         Saves the related numpy arrays
+        NOTE: Current version only plots SI criteria b
         """
         fig, axes = plt.subplots(nrows=3,ncols=2,figsize=[7,9],sharex=True,sharey=True)
         plt.subplots_adjust(wspace=0.05)
