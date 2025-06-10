@@ -38,8 +38,6 @@ Example:
 
 import argparse
 import astropy.constants as c
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import numpy as np
 
 import input_loader
