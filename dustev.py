@@ -14,7 +14,7 @@ Example:
 """
 
 import argparse
-from astropy import constants as
+from astropy import constants as c
 import numpy as np
 
 from dustpy import Simulation
