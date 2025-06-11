@@ -56,7 +56,7 @@ class Disk:
         d2g = d2gSigma * (St / self.alphaTurb + 1.0)**1.5
         return d2g
 
-     def calc_d2gRho_vortex_growth(self):
+    def calc_d2gRho_vortex_growth(self):
         """
         Calculates the maximum Stokes number, dust midplane
         density and dust-to-gas midplane density ratio
