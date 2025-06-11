@@ -98,7 +98,7 @@ class Planetesimal:
         H = Cs / Omega[None,:]
         h = H / self.model.r[None,:]
         gamma = 4 * np.pi * c.G.cgs.value * self.model.rho_gas * Omega**(-2)
-        mp = 5e-5 * c.M_earth.cgs.value * (Zfil / 0.02)**(1/2) * (gamma / np.pi**(-1))**(3/2) * (h / 0.05)**3 * (self.Mstar / c.M_sun.>
+        mp = 5e-5 * c.M_earth.cgs.value * (Zfil / 0.02)**(1/2) * (gamma / np.pi**(-1))**(3/2) * (h / 0.05)**3 * (self.Mstar / c.M_sun.cgs.value)
         membryo = 10 * mp * pf
         membryo = np.minimum(self.Mvortex, membryo)
         return membryo
@@ -116,6 +116,6 @@ class Planetesimal:
         H = Cs / Omega[None,:]
         h = H / self.model.r[None,:]
         gamma = 4 * np.pi * c.G.cgs.value * self.model.rho_gas * Omega**(-2)
-        mp = 5e-5 * c.M_earth.cgs.value * (Zfil / 0.02)**(1/2) * (gamma / np.pi**(-1))**(3/2) * (h / 0.05)**3 * (self.Mstar / c.M_sun.>
+        mp = 5e-5 * c.M_earth.cgs.value * (Zfil / 0.02)**(1/2) * (gamma / np.pi**(-1))**(3/2) * (h / 0.05)**3 * (self.Mstar / c.M_sun.cgs.value)
         membryo = 10 * mp * pf
         return membryo
