@@ -64,8 +64,12 @@ if __name__ == '__main__':
     # Load and trim the DustPy 
     model = load.Model(path=args.path, rmax = 50*au, tmin = 1e4*year)
 
+    print('Finished with loading dustpy data')
+
     # Calculate the representative St and max dust-to-gas ratio
     d2gSt = disk.Disk(model)
+
+    print('Finished with disk module')
 
     # Planetesimal formation module
     pfEm = planetesimal.Planetesimal(model, d2gSt)
